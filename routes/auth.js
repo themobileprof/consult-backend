@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
-const db = require('../db'); // Adjust the path as necessary
+const db = require('../db/db'); // Adjust the path as necessary
 
 const router = express.Router();
 
@@ -27,14 +27,33 @@ router.post('/google', async (req, res) => {
       picture: payload.picture,
       sub: payload.sub,
     };
-    // Store user in DB if not exists
+    // Store user in DB if not exists, then fetch with role
     const createdAt = new Date().toISOString();
     db.run(
       'INSERT OR IGNORE INTO users (email, name, picture, createdAt) VALUES (?, ?, ?, ?)',
-      [user.email, user.name, user.picture, createdAt]
+      [user.email, user.name, user.picture, createdAt],
+      function() {
+        db.get('SELECT * FROM users WHERE email = ?', [user.email], (err, dbUser) => {
+          if (err || !dbUser) {
+            return res.status(500).json({ error: 'User DB error' });
+          }
+          const token = jwt.sign({
+            email: dbUser.email,
+            name: dbUser.name,
+            picture: dbUser.picture,
+            role: dbUser.role,
+            sub: payload.sub
+          }, JWT_SECRET, { expiresIn: '2h' });
+          res.json({ token, user: {
+            email: dbUser.email,
+            name: dbUser.name,
+            picture: dbUser.picture,
+            role: dbUser.role,
+            sub: payload.sub
+          }});
+        });
+      }
     );
-    const token = jwt.sign(user, JWT_SECRET, { expiresIn: '2h' });
-    res.json({ token, user });
   } catch (err) {
     res.status(401).json({ error: 'Invalid Google credential' });
   }

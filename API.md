@@ -104,6 +104,7 @@ Authenticate a user using Google Sign-In.
       "email": "user@example.com",
       "name": "User Name",
       "picture": "https://...",
+      "role": "user", // or "admin"
       "sub": "google-user-id"
     }
   }
@@ -114,6 +115,9 @@ Authenticate a user using Google Sign-In.
   // or
   { "error": "Invalid Google credential" }
   ```
+
+- The `role` field in the response allows the frontend to show/hide admin features.
+- The JWT token includes the user's role and should be sent as a Bearer token in the `Authorization` header for protected endpoints.
 
 ---
 
@@ -235,7 +239,36 @@ Manually mark a booking as paid (for free or paid sessions).
 
 ---
 
+## GET /api/bookings/availability
+Get unavailable time slots and work settings for the booking calendar.
+
+### Response
+- **Success (200):**
+  ```json
+  {
+    "unavailable": {
+      "2025-05-28": [
+        { "from": 9, "to": 11 },
+        { "from": 13, "to": 15 }
+      ],
+      // ...more dates
+    },
+    "workDays": [1,2,3,4,5],
+    "workStart": 9,
+    "workEnd": 17,
+    "bufferMinutes": 60
+  }
+  ```
+- `unavailable` is a map of dates to arrays of blocked time intervals (in 24-hour format, with buffer after each session).
+- `workDays` is an array of allowed weekdays (1=Monday, 5=Friday).
+- `workStart` and `workEnd` are the workday start/end hours (24-hour format).
+- `bufferMinutes` is the time in minutes between sessions (admin configurable).
+
+---
+
 ## Notes
+- Workdays, work hours, and buffer between sessions are stored in the database and can be managed from the admin panel in the future.
+- The frontend should use this endpoint to mark off unavailable slots and enforce business hours/buffer.
 - CORS is enabled for local development.
 - Bookings are stored in a SQLite database (`bookings.db`).
 - Authentication uses Google Sign-In and JWT.

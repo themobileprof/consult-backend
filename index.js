@@ -6,6 +6,7 @@ const path = require('path');
 const bookingsRouter = require('./routes/bookings');
 const authRouter = require('./routes/auth');
 const paymentRouter = require('./routes/payment');
+const adminRouter = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/bookings', bookingsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/payment/flutterwave', express.json({ type: ['application/json', 'application/*+json'] }), paymentRouter);
+app.use('/api/admin', adminRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);

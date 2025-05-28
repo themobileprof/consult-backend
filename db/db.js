@@ -26,12 +26,14 @@ CREATE TABLE IF NOT EXISTS bookings (
 db.run(createBookingsTableSql);
 
 // Create users table if it doesn't exist
+// Add role to users table (default: 'user')
 const createUsersTableSql = `
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   email TEXT NOT NULL UNIQUE,
   name TEXT,
   picture TEXT,
+  role TEXT DEFAULT 'user',
   createdAt TEXT NOT NULL
 )`;
 db.run(createUsersTableSql);
