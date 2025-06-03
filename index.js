@@ -11,7 +11,19 @@ const adminRouter = require('./routes/admin');
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// CORS configuration
+// const corsOptions = {
+//   origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ['http://localhost:3000'],
+//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   credentials: true,
+//   maxAge: 86400 // 24 hours
+// };
+
+// app.use(cors(corsOptions));
+
 app.use(cors());
+
 app.use(express.json());
 
 // API routes

@@ -21,6 +21,6 @@ console.log('Authorize this app by visiting this url:', url);
 // Paste that code below and run the following to get your tokens:
 
 // Uncomment and replace 'YOUR_AUTH_CODE' with the code from the URL
-oauth2Client.getToken('4/0AUJR-x7b0vNyAo29N_B3elY3luPvyCoNbNkHfQcEmijijVKh-GFtw0glITo0aOro1XR5cA').then(({ tokens }) => {
+oauth2Client.getToken('4/0AUJR-x5ucuvzyKK5pCxCOs0Wtjbbke18yMBq51N5pmVmwVxBsjL2-AGLTaJ9jQoT-Pj1NA').then(({ tokens }) => {
   console.log('Tokens:', tokens);
 });

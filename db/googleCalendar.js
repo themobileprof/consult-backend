@@ -24,6 +24,34 @@ async function addBookingToGoogleCalendar(booking) {
     return;
   }
 
+  // Calculate end time for the event
+  let endTime = booking.endTime;
+  if (!endTime) {
+    // If no endTime provided, calculate based on booking type
+    const startTime = booking.time;
+    const [hours, minutes, period] = startTime.match(/(\d+):(\d+)\s*([AP]M)/).slice(1);
+    let hour = parseInt(hours);
+    if (period === 'PM' && hour !== 12) hour += 12;
+    if (period === 'AM' && hour === 12) hour = 0;
+    
+    // Add 30 minutes for free consultations, 1 hour for paid
+    const durationMinutes = booking.type === 'free' ? 30 : 60;
+    let endHour = hour;
+    let endMinute = parseInt(minutes) + durationMinutes;
+    
+    if (endMinute >= 60) {
+      endHour = (endHour + Math.floor(endMinute / 60)) % 24;
+      endMinute = endMinute % 60;
+    }
+    
+    // Convert back to 12-hour format
+    let endPeriod = endHour >= 12 ? 'PM' : 'AM';
+    if (endHour > 12) endHour -= 12;
+    if (endHour === 0) endHour = 12;
+    
+    endTime = `${endHour}:${endMinute.toString().padStart(2, '0')} ${endPeriod}`;
+  }
+
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
   const event = {
     summary: `Consulting Session: ${booking.email}`,
@@ -33,7 +61,7 @@ async function addBookingToGoogleCalendar(booking) {
       timeZone: 'UTC',
     },
     end: {
-      dateTime: `${booking.date}T${booking.endTime ? booking.endTime.replace(/\s*([AP]M)/, '') : booking.time.replace(/\s*([AP]M)/, '')}:00`,
+      dateTime: `${booking.date}T${endTime.replace(/\s*([AP]M)/, '')}:00`,
       timeZone: 'UTC',
     },
     attendees: [{ email: booking.email }],

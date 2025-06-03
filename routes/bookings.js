@@ -26,14 +26,26 @@ router.post('/', (req, res) => {
     insertBooking();
   }
 
-  function insertBooking() {
+  async function insertBooking() {
     const createdAt = new Date().toISOString();
-    const insertSql = `INSERT INTO bookings (date, time, endTime, type, cost, email, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    db.run(insertSql, [date, time, endTime, type, cost, email, createdAt], function(err) {
+    // For free consultations, automatically mark as paid
+    const paid = type === 'free' ? 1 : 0;
+    const insertSql = `INSERT INTO bookings (date, time, endTime, type, cost, email, createdAt, paid) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+    db.run(insertSql, [date, time, endTime, type, cost, email, createdAt, paid], async function(err) {
       if (err) {
         return res.status(500).json({ error: 'Database error' });
       }
       const booking = { id: this.lastID, date, time, endTime, type, cost, email, createdAt };
+      
+      // For free consultations, immediately add to Google Calendar
+      if (type === 'free') {
+        const meetLink = await addBookingToGoogleCalendar(booking);
+        if (meetLink) {
+          db.run('UPDATE bookings SET meet_link = ? WHERE id = ?', [meetLink, this.lastID]);
+          booking.meet_link = meetLink;
+        }
+      }
+      
       res.status(201).json({ message: 'Booking received', booking });
     });
   }
